@@ -78,6 +78,7 @@ openai==1.51.0
 opencv-contrib-python==4.10.0.84
 opencv-python==4.10.0.84
 opencv-python-headless==4.10.0.84
+opencv-contrib-python-headless==4.8.0.76
 opt_einsum==3.4.0
 optree==0.13.0
 orjson==3.10.7
