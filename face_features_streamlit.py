@@ -93,8 +93,6 @@ import pandas as pd
 import streamlit as st
 from PIL import Image
 
-print(get_face_features('final_test/1/imag 14.jpg'))
-
 st.title("Image Processing App")
 st.write("Upload an image to process and see the results!")
 
