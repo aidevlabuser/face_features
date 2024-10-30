@@ -1,13 +1,17 @@
 import os
+import cv2
 import pandas as pd
 from measurements.new_measurements import FaceMeasurements
-from face_landmarks import FaceLandmarks
+from face_landmarks import FaceLandmarks, draw_landmarks_on_image
 
 
 def _facial_landmarks(image_path):
     
     face_landmarks = FaceLandmarks(image_path)
-    return face_landmarks
+    image = draw_landmarks_on_image(cv2.imread(image_path), 
+                                           face_landmarks.get_all_landmarks())
+    
+    return image
 
 
 def _get_measurements(image_path):
@@ -21,20 +25,20 @@ def _get_measurements(image_path):
         dict: A dictionary containing all extracted measurements.
     """
     # Extract landmarks using the wrapper function
-    face_landmarks = _facial_landmarks(image_path)
+    image_with_landmark = _facial_landmarks(image_path)
     
     # Initialize FaceMeasurements with the extracted landmarks
     face_measurements = FaceMeasurements(image_path)
     
     # Get all measurements
     measurements = face_measurements.get_all_measurements()
-    return measurements
+    return measurements, image_with_landmark
 
 
 def get_face_measurements(image_path):
-    measurements = _get_measurements(image_path)
+    measurements, image_with_landmark = _get_measurements(image_path)
 
-    return {
+    measurements = {
         'Face Rectangularity': measurements.get('face_rectangularity'),
         'Middle Face Rectangularity': measurements.get('middle_face_rectangularity'),
         'Forehead Rectangularity': measurements.get('forehead_rectangularity'),
@@ -65,3 +69,7 @@ def get_face_measurements(image_path):
         'Cheekbone Angle': measurements.get('cheekbone_angle'),
         'Lip Size': measurements.get('lip_size'),
     }
+
+    image_with_landmark = cv2.cvtColor(image_with_landmark, cv2.COLOR_BGR2RGB)
+
+    return measurements, image_with_landmark

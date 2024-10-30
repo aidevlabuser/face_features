@@ -67,7 +67,7 @@ model.eval()
 
 
 def get_face_features(image_path):
-    features = get_face_measurements(image_path)
+    features, image_with_landmark = get_face_measurements(image_path)
     features = torch.tensor(list(features.values()), dtype=torch.float32).reshape(1, -1)
 
     label_encoders = {}
@@ -84,7 +84,7 @@ def get_face_features(image_path):
             pred_indices = torch.argmax(pred, dim=1)
             final_predictions[col] = label_encoders[col].inverse_transform(pred_indices.numpy())[0]
 
-    return final_predictions
+    return final_predictions, image_with_landmark
 
 
 
@@ -93,17 +93,7 @@ import pandas as pd
 import streamlit as st
 from PIL import Image
 
-def process_image(image):
-    # Replace this with your actual image processing logic
-    # Here, we're just simulating processing with a sample dictionary
-    result = {
-        "Width": image.width,
-        "Height": image.height,
-        "Mode": image.mode,
-        "Format": image.format,
-        "Sample Feature": "Example Feature Value"
-    }
-    return result
+print(get_face_features('final_test/1/imag 14.jpg'))
 
 st.title("Image Processing App")
 st.write("Upload an image to process and see the results!")
@@ -112,13 +102,15 @@ uploaded_image = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "pn
 
 if uploaded_image is not None:
     image = Image.open(uploaded_image)
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+    # st.image(image, caption="Uploaded Image", use_column_width=True)
     st.write("Processing...")
 
     filename = f"tmp/{uuid4()}.png"
     image.save(filename)
     
-    result_dict = get_face_features(filename)
+    result_dict, image_with_landmark = get_face_features(filename)
+    image = Image.fromarray(image_with_landmark)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
 
     st.write("### Result:")
     result_df = pd.DataFrame(list(result_dict.items()), columns=["Feature", "Prediction"])
