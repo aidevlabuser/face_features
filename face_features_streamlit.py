@@ -87,6 +87,49 @@ def get_face_features(image_path):
     return final_predictions, image_with_landmark
 
 
+def predict_personality(features):
+    # Rule-based mappings
+    rules = [
+        {'Face Shape': 'Oval', 'Face Wideness': 'Narrow', 'Face Contours': 'Soft Contours', 'Personality': 'Elegant'},
+        {'Face Shape': 'Square', 'Jaw Lines': 'Sharp/Angular Jawline', 'Nose Wideness': 'Narrow Nose', 'Personality': 'Confident'},
+        {'Face Shape': 'Round', 'Cheekbone Depth': 'Prominent Cheekbones', 'Lips Shape': 'Full Lips', 'Personality': 'Approachable'},
+        {'Face Shape': 'Diamond', 'Jaw Lines': 'Tapered Jawline', 'Eyebrow Arch': 'High Arch', 'Personality': 'Charismatic'},
+        {'Face Shape': 'Heart', 'Lips Shape': 'Bow-Shaped Lips', 'Eye Size': 'Large Eyes', 'Personality': 'Warm/Inviting'},
+        {'Jaw Wideness': 'Wide Jaw', 'Face Contours': 'Sharp/Angular Contours', 'Cheekbone Depth': 'Flat Cheekbones', 'Personality': 'Bold'},
+        {'Face Shape': 'Round', 'Eye Size': 'Average Eyes', 'Face Contours': 'Moderately Defined Contours', 'Personality': 'Friendly'},
+        {'Face Shape': 'Oval', 'Cheekbone Depth': 'Sunken Cheekbones', 'Nose Type': 'Small Nose', 'Personality': 'Thoughtful'},
+        {'Face Shape': 'Oblong', 'Lips Width': 'Wide Lips', 'Nose Shape': 'Button Nose', 'Personality': 'Cheerful'},
+        {'Face Shape': 'Diamond', 'Jaw Lines': 'Rounded Jawline', 'Eyebrow Arch': 'Soft Arch', 'Personality': 'Approachable'},
+        {'Face Shape': 'Square', 'Lips Shape': 'Thin Lips', 'Nose Shape': 'Hawk Nose', 'Personality': 'Powerful'},
+        {'Face Shape': 'Oval', 'Face Wideness': 'Narrow', 'Eyebrow Arch': 'Straight (Flat) Brows', 'Personality': 'Subtle Elegance'},
+        {'Face Shape': 'Round', 'Cheekbone Depth': 'Prominent Cheekbones', 'Jaw Wideness': 'Moderate Jaw', 'Personality': 'Compassionate'},
+        {'Face Shape': 'Diamond', 'Lips Width': 'Average Lips', 'Jaw Lines': 'Tapered Jawline', 'Personality': 'Expressive'},
+        {'Face Shape': 'Heart', 'Eye Size': 'Large Eyes', 'Eyebrow Arch': 'High Arch', 'Personality': 'Youthful'},
+        {'Face Shape': 'Oblong', 'Face Contours': 'Tapered Contours', 'Lips Shape': 'Round Lips', 'Personality': 'Adaptable'},
+        {'Jaw Wideness': 'Narrow Jaw', 'Lips Shape': 'Bow-Shaped Lips', 'Cheekbone Depth': 'Prominent Cheekbones', 'Personality': 'Creative'},
+        {'Face Shape': 'Square', 'Face Wideness': 'Wide', 'Nose Shape': 'Flat Nose', 'Personality': 'Grounded'},
+        {'Face Shape': 'Heart', 'Jaw Lines': 'Sharp/Angular Jawline', 'Lips Width': 'Wide Lips', 'Personality': 'Spirited'},
+        {'Face Shape': 'Oval', 'Face Wideness': 'Extremely Wide', 'Eyebrow Arch': 'Moderate Arch', 'Personality': 'Balanced'},
+        {'Face Shape': 'Oblong', 'Lips Shape': 'Wide Lips', 'Cheekbone Depth': 'Flat Cheekbones', 'Personality': 'Neutral'},
+        {'Face Shape': 'Round', 'Nose Shape': 'Straight Nose', 'Jaw Wideness': 'Wide Jaw', 'Personality': 'Relatable'},
+        {'Face Shape': 'Heart', 'Lips Shape': 'Flat Lips', 'Eye Size': 'Small Eyes', 'Personality': 'Subdued'},
+        {'Face Shape': 'Square', 'Eyebrow Arch': 'Straight (Flat) Brows', 'Lips Width': 'Narrow Lips', 'Personality': 'Commanding'},
+        {'Face Shape': 'Diamond', 'Face Contours': 'Moderately Defined Contours', 'Lips Shape': 'Full Lips', 'Personality': 'Radiant'},
+        {'Face Shape': 'Oblong', 'Personality': 'Assertive'},
+        {'Face Shape': 'Oval', 'Personality': 'Sophisticated'},
+        {'Face Shape': 'Heart', 'Personality': 'Delicate'},
+        {'Face Shape': 'Diamond', 'Personality': 'Reserved'},
+        {'Face Shape': 'Square', 'Personality': 'Serious'},
+    ]
+
+    # Check each rule
+    for rule in rules:
+        # Match the rule if all specified features match
+        if all(features.get(key) == value for key, value in rule.items() if key != 'Personality'):
+            return rule['Personality']
+
+    # Final fallback rule for unmatched features
+    return 'Adaptive'
 
 
 import pandas as pd
@@ -105,7 +148,7 @@ if uploaded_image is not None:
 
     filename = f"tmp/{uuid4()}.png"
     image.save(filename)
-    
+
     result_dict, image_with_landmark = get_face_features(filename)
     image = Image.fromarray(image_with_landmark)
     st.image(image, caption="Uploaded Image", use_column_width=True)
@@ -114,3 +157,7 @@ if uploaded_image is not None:
     result_df = pd.DataFrame(list(result_dict.items()), columns=["Feature", "Prediction"])
     result_df.index += 1
     st.table(result_df)
+
+    st.write("### Personality:")
+    personality = predict_personality(result_dict)
+    st.write(personality)
