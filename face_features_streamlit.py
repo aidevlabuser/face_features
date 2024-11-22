@@ -153,11 +153,11 @@ if uploaded_image is not None:
     image = Image.fromarray(image_with_landmark)
     st.image(image, caption="Uploaded Image", use_column_width=True)
 
-    st.write("### Result:")
-    result_df = pd.DataFrame(list(result_dict.items()), columns=["Feature", "Prediction"])
-    result_df.index += 1
-    st.table(result_df)
-
     st.write("### Personality:")
     personality = predict_personality(result_dict)
     st.write(personality)
+
+    st.write("### Face features:")
+    result_df = pd.DataFrame(list(result_dict.items()), columns=["Feature", "Prediction"])
+    result_df.index += 1
+    st.table(result_df)
