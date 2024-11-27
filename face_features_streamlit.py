@@ -4,6 +4,7 @@ import torch
 import pickle
 import torch.nn as nn
 from face_measurments import get_face_measurements
+from utils.math_helper_functions import euclidean_distance
 
 
 os.makedirs('tmp', exist_ok=True)
@@ -67,7 +68,7 @@ model.eval()
 
 
 def get_face_features(image_path):
-    features, image_with_landmark = get_face_measurements(image_path)
+    features, image_with_landmark, landmarks = get_face_measurements(image_path)
     features = torch.tensor(list(features.values()), dtype=torch.float32).reshape(1, -1)
 
     label_encoders = {}
@@ -84,7 +85,7 @@ def get_face_features(image_path):
             pred_indices = torch.argmax(pred, dim=1)
             final_predictions[col] = label_encoders[col].inverse_transform(pred_indices.numpy())[0]
 
-    return final_predictions, image_with_landmark
+    return final_predictions, image_with_landmark, landmarks
 
 
 def predict_personality(features):
@@ -132,6 +133,27 @@ def predict_personality(features):
     return 'Adaptive'
 
 
+def predict_personality_new(landmarks, features):
+    all_traits = []
+
+    if features['Face Shape'] == "Round":
+        all_traits += ["Conserving", "Innate self confidence"]
+    elif features['Face Shape'] == "Square":
+        all_traits += ["Constructive", "Learned self confidence"]
+
+    inner_dist = euclidean_distance(landmarks.left_eye[2], landmarks.right_eye[0])
+    outer_dist = euclidean_distance(landmarks.left_eye[0], landmarks.right_eye[2])
+    eye_dist_ratio = inner_dist / outer_dist
+    all_traits.append("Tolerant" if eye_dist_ratio > 1 else "Low Tolerance")
+
+    forehead_height = euclidean_distance(landmarks.forehead, landmarks.nose_top)
+    forehead_width = euclidean_distance(landmarks.left_forehead_point, landmarks.right_forehead_point)
+    forehead_ratio = forehead_height / forehead_width
+    all_traits.append("Ambitious" if forehead_ratio > 0.5 else "Low Ambitious")
+
+    return all_traits
+
+
 import pandas as pd
 import streamlit as st
 from PIL import Image
@@ -149,15 +171,18 @@ if uploaded_image is not None:
     filename = f"tmp/{uuid4()}.png"
     image.save(filename)
 
-    result_dict, image_with_landmark = get_face_features(filename)
+    features, image_with_landmark, landmarks = get_face_features(filename)
     image = Image.fromarray(image_with_landmark)
     st.image(image, caption="Uploaded Image", use_column_width=True)
 
     st.write("### Personality:")
-    personality = predict_personality(result_dict)
+    personality = predict_personality(features)
     st.write(personality)
+    st.write("### Other Personality Traits:")
+    personality_traits = predict_personality_new(landmarks, features)
+    st.markdown("- "+"\n- ".join(personality_traits))
 
     st.write("### Face features:")
-    result_df = pd.DataFrame(list(result_dict.items()), columns=["Feature", "Prediction"])
+    result_df = pd.DataFrame(list(features.items()), columns=["Feature", "Prediction"])
     result_df.index += 1
     st.table(result_df)

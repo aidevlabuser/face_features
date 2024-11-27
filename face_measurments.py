@@ -29,14 +29,14 @@ def _get_measurements(image_path):
     
     # Initialize FaceMeasurements with the extracted landmarks
     face_measurements = FaceMeasurements(image_path)
-    
+    landmarks = face_measurements.landmarks_extractor
     # Get all measurements
     measurements = face_measurements.get_all_measurements()
-    return measurements, image_with_landmark
+    return measurements, image_with_landmark, landmarks
 
 
 def get_face_measurements(image_path):
-    measurements, image_with_landmark = _get_measurements(image_path)
+    measurements, image_with_landmark, landmarks = _get_measurements(image_path)
 
     measurements = {
         'Face Rectangularity': measurements.get('face_rectangularity'),
@@ -72,4 +72,4 @@ def get_face_measurements(image_path):
 
     image_with_landmark = cv2.cvtColor(image_with_landmark, cv2.COLOR_BGR2RGB)
 
-    return measurements, image_with_landmark
+    return measurements, image_with_landmark, landmarks
