@@ -1,4 +1,4 @@
-cmake
+# cmake
 torch==2.5.1
 # pandas==2.2.3
 # opencv-python==4.10.0.84
